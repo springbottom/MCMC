@@ -16,10 +16,36 @@ struct MCMC_settings
     std::string file_name;
 };
 
+//template <class T_state, class T_stats> //Generic container for states?
+//int sweep(MCMC_settings*,T_state*,T_stats*);
+
 template <class T_state, class T_stats> //Generic container for states?
 int sweep(MCMC_settings* settings,
-          T_state* init(void),
-          T_stats* stats);
+          T_state* state,
+          T_stats* stats)
+{
+  std::ofstream file ((*settings).file_name);
+
+  double temp;
+  for (int i = 0; i < (*settings).temp_N; i++){
+    temp = (*settings).temp_min + i*((*settings).temp_max-(*settings).temp_min)/(double)((*settings).temp_N-1);
+    (*stats).reset();
+    for (int j = 0; j < (*settings).pre_iters; j++){
+      (*state).update(1/temp);
+    }
+    for (int j = 0; j < (*settings).iters; j++){
+      (*stats).update((*state).update(1/temp),j+1);
+    }
+    file << temp << "," << (*stats).final(1/temp,(*state).num,(*settings).iters) << "\n";
+  }
+
+  file.close();
+  printf("Everything went well!\n");
+  return 0;
+}
+
+
+
 
 class welford_state
 {
@@ -30,5 +56,5 @@ private:
 public:
   void reset();
   void update(double new_value, int n);
-  double final(double beta);
+  double final(double beta, int num_samples, int num_particles);
 };
