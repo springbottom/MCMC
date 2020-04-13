@@ -1,64 +1,61 @@
 /*
 A general MCMC script.
 */
-#include <string>
 
-
-template <class T_state> //Generic container for states?
-template <class T_stats> //Generic container for the stats module
-
-//Simple struct to hold my settings?
-struct MCMC_settings
-{
-    int n; int pre_iters; int iters;
-    double temp_min; double temp_max; int temp_N;
-    string file_name;
-}
+#include "MCMC.h"
 
 //The actual sweeping function
-int sweep(MCMC_settings settings,
+template <class T_state, class T_stats> //Generic container for states?
+int sweep(MCMC_settings* settings,
           T_state* init(void),
-          double step(double,*T_state),
-          ){
-
-  ofstream file (file_name);
+          T_stats* stats)
+{
+  std::ofstream file ((*settings).file_name);
   T_state* state = init();
 
   double temp;
-  for (int i = 0; i < N; i++){
-    for (int j = 0; j < pre_iters; j++){
-      step(1/temp,*state);
+  for (int i = 0; i < (*settings).temp_N; i++){
+    temp = (*settings).temp_min + i*((*settings).temp_max-(*settings).temp_min)/(double)((*settings).temp_N-1);
+    (*stats).reset();
+    for (int j = 0; j < (*settings).pre_iters; j++){
+      (*state).step(1/temp);
     }
-    temp = temp_min + i*(temp_max-temp_min)/(double)(N-1);
-    step(1/temp,*state);
+    for (int j = 0; j < (*settings).iters; j++){
+      (*stats).update((*state).step(1/temp));
+    }
+    file << temp << "," << (*stats).final();
   }
 
-
-
-  my_file.close();
-
-
+  file.close();
   printf("Everything went well!\n");
   return 0;
 }
 
 //Simple class to do the welford online variance calculation.
-class welford_state
+void welford_state :: reset()
 {
-  double old_x_n;
-  double x_n;
-  double M_2_n;
+  old_x_n = 0;
+  x_n = 0;
+  M_2_n = 0;
+}
 
-  int update(double new_value, int n){
-    //Online algorithm for computing variance
-    this.old_x_n = x_n;
-    this.x_n   = this.old_x_n + (new_value - this.old_x_n)/(double)n;
-    this.M_2_n = this.M_2_n + (new_value - this.old_x_n)*(new_value - this.x_n);
+void welford_state :: update(double new_value, int n)
+{
+  //Online algorithm for computing variance
+  old_x_n = x_n;
+  x_n   = old_x_n + (new_value - old_x_n)/(double)n;
+  M_2_n = M_2_n + (new_value - old_x_n)*(new_value - x_n);
+}
 
-    return 0;
-  }
+double welford_state :: final(double beta)
+{
+  return beta*beta*M_2_n;
+}
 
-  double final(double beta){
-    return beta*beta*this.M_2_n;
-  }
+double rand_double(){
+  return random()/(double)RAND_MAX;
+}
+
+inline int positive_modulo(int i, int n) {
+    return (i % n + n) % n;
 }
