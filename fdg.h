@@ -15,7 +15,7 @@ struct fdg_settings{
 
 double torus_distance(double x1,double y1, double x2, double y2);
 
-class fdg_loop{
+class fdg_loop : public MCMC_state{
 private:
   double* state;
   double* energy; //represents all the bonds connected to that vertex...

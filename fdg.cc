@@ -13,12 +13,7 @@ int main(int argc, char *argv[]){
     settings2.epsilon  = strtod(argv[2],NULL);  //the radius of hopping, probably keep it relatively small?
     settings2.A        = strtod(argv[3],NULL);  //H = \sum(bonds) |x_i - y_i| - A \sum(all) |x_i - y_i|
 
-    settings.pre_iters = atoi(argv[4]);         //
-    settings.iters     = atoi(argv[5]);         //
-    settings.temp_min  = strtod(argv[6],NULL);  //
-    settings.temp_max  = strtod(argv[7],NULL);  //
-    settings.temp_N    = atoi(argv[8]);         //
-    settings.file_name = argv[9];
+    MCMC_settings settings(atoi(argv[4]),atoi(argv[5]),strtod(argv[6],NULL),strtod(argv[7],NULL),atoi(argv[8]),argv[9]);
   }
   else
   {
@@ -27,12 +22,7 @@ int main(int argc, char *argv[]){
     settings2.epsilon = 0.1;
     settings2.A = 0.5;
 
-    settings.pre_iters = 10;
-    settings.iters = 10;
-    settings.temp_min = 0.2;
-    settings.temp_max = 1.5;
-    settings.temp_N = 10;
-    settings.file_name = "test";
+    MCMC_settings settings(10,10,0.2,1.5,10,"test");
   }
 
   //std::cout << settings.file_name << std::endl;
